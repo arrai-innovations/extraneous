@@ -15,7 +15,7 @@ with open('requirements.txt', 'r') as req:
         author='Arrai Innovations',
         author_email='support@arrai.com',
         py_modules=['extraneous'],
-        scripts=['extraneous'],
+        scripts=['extraneous.py'],
         install_requires=[x for x in req.read().split('\n') if x],
         license='LICENSE',
         test_suite='tests',
