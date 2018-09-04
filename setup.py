@@ -1,0 +1,30 @@
+from setuptools import setup
+
+
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
+with open('requirements.txt', 'r') as req:
+    setup(
+        name='extraneous',
+        url='https://github.com/arrai-innovations/extraneous/',
+        version='1.0.0',
+        description='Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.',
+        long_description=long_description,
+        long_description_content_type='text/markdown',
+        author='Arrai Innovations',
+        author_email='support@arrai.com',
+        py_modules=['extraneous'],
+        scripts=['extraneous'],
+        install_requires=[x for x in req.read().split('\n') if x],
+        license='LICENSE',
+        test_suite='tests',
+        classifiers=[
+            'Development Status :: 4 - Beta',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.7',
+            'License :: OSI Approved :: BSD License',
+            'Environment :: Console',
+            'Intended Audience :: Developers',
+        ]
+    )
