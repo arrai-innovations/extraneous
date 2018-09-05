@@ -12,7 +12,6 @@ from pipdeptree import build_dist_index, construct_tree, reverse_tree
 
 flatten = chain.from_iterable
 re_operator = re.compile(r'[>=]')
-__version__ = '1.0.0'
 
 
 def parse_requirement(line):
@@ -79,14 +78,16 @@ def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall):
                 p_requirements = name_tree.get(package, None)
                 if p_requirements:
                     add_to_uninstall(p_requirements)
+
     add_to_uninstall(root_package_names_to_uninstall)
     return packages_to_uninstall
 
 
-if __name__ == '__main__':
+def main(*args):
     default_not_extraneous = ['extraneous', 'pipdeptree', 'pip', 'setuptools']
     default_requirements = ['requirements.txt', 'local_requirements.txt', 'test_requirements.txt']
-    parser = argparse.ArgumentParser(
+    parser = argparse_class(
+        prog='extraneous.py',
         description='Identifies packages that are installed but not defined in requirements files. Prints the'
                     " 'pip uninstall' command that removes these extraneous packages and any non-common"
                     ' dependencies.'
@@ -115,18 +116,18 @@ if __name__ == '__main__':
         action='store_true',
         help='Allows {} as extraneous packages.'.format(default_not_extraneous)
     )
-    args = parser.parse_args()
-    installed, editable, tree = read_installed(args.verbose)
+    parsed_args = parser.parse_args(args)
+    installed, editable, tree = read_installed(parsed_args.verbose)
     requirements = read_requirements(
-        args.verbose,
-        include=args.include or default_requirements
+        parsed_args.verbose,
+        include=parsed_args.include or default_requirements
     )
     for frozen, name in editable.items():
         if frozen in requirements:
             requirements.remove(frozen)
             requirements.add(name)
-    not_extraneous = set(args.exclude)
-    if not args.full:
+    not_extraneous = set(parsed_args.exclude)
+    if not parsed_args.full:
         not_extraneous |= set(default_not_extraneous)
     extraneous = installed - requirements - not_extraneous
     if extraneous:
@@ -140,3 +141,18 @@ if __name__ == '__main__':
             extraneous_str,
             ' '.join(sorted(uninstall))
         ))
+
+
+class BadArgumentError(ValueError):
+    pass
+
+
+class NoExitArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise BadArgumentError(self.format_usage(), message)
+
+
+argparse_class = NoExitArgumentParser
+if __name__ == '__main__':
+    argparse_class = argparse.ArgumentParser
+    main()
