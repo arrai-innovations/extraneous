@@ -1,5 +1,6 @@
 #!/bin/env python
 # Copyright (C) 2018 Arrai Innovations Inc. - All Rights Reserved
+import argparse
 import os
 import re
 from itertools import chain
@@ -75,16 +76,50 @@ def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall):
 
 
 if __name__ == '__main__':
-    args_verbose = True
-    installed, editable, tree = read_installed(args_verbose)
-    requirements = read_requirements(args_verbose)
+    default_not_extraneous = ['extraneous', 'pipdeptree', 'pip', 'setuptools']
+    default_requirements = ['requirements.txt', 'local_requirements.txt', 'test_requirements.txt']
+    parser = argparse.ArgumentParser(
+        description='Identifies packages that are installed but not defined in requirements files. Prints the'
+                    " 'pip uninstall' command that removes these extraneous packages and any non-common"
+                    ' dependencies.'
+    )
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Prints installed site-package folders and requirements files.'
+    )
+    parser.add_argument(
+        '--include', '-i',
+        metavar='paths',
+        action='append',
+        help='Requirements file paths to look for. If not defined, looks for {}.'.format(default_requirements)
+    )
+    parser.add_argument(
+        '--exclude', '-e',
+        metavar='names',
+        action='append',
+        help='Package names to not consider extraneous. {} are not considered extraneous packages.'.format(default_not_extraneous)
+    )
+    parser.add_argument(
+        '--full', '-f',
+        action='store_true',
+        help='Allows {} as extraneous packages.'.format(default_not_extraneous)
+    )
+    args = parser.parse_args()
+    installed, editable, tree = read_installed(args.verbose)
+    requirements = read_requirements(
+        args.verbose,
+        include_requirements=args.include_requirements or default_requirements
+    )
     for frozen, name in editable.items():
         if frozen in requirements:
             requirements.remove(frozen)
             requirements.add(name)
-    never_extraneous = {'psycopg2', 'pipdeptree', 'pip', 'setuptools'}
-    extraneous = installed - requirements - never_extraneous
+    not_extraneous = set(args.exclude_packages)
+    if not args.full:
+        not_extraneous |= set(default_not_extraneous)
+    extraneous = installed - requirements - not_extraneous
     if extraneous:
         print(color('extraneous packages:\n\t{}'.format(' '.join(extraneous)), fg='yellow'))
-        uninstall = find_requirements_unique_to_projects(tree, extraneous) - never_extraneous
+        uninstall = find_requirements_unique_to_projects(tree, extraneous) - not_extraneous
         print('uninstall via:\n\tpip uninstall -y {}'.format(' '.join(uninstall)))
