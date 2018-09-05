@@ -11,6 +11,7 @@ from pipdeptree import build_dist_index, construct_tree, reverse_tree
 
 flatten = chain.from_iterable
 re_operator = re.compile(r'[>=]')
+__version__ = '1.0.0'
 
 
 def parse_requirement(line):

@@ -1,5 +1,5 @@
 from setuptools import setup
-
+from extraneous import __version__
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
@@ -8,7 +8,7 @@ with open('requirements.txt', 'r') as req:
     setup(
         name='extraneous',
         url='https://github.com/arrai-innovations/extraneous/',
-        version='1.0.0',
+        version=__version__,
         description='Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.',
         long_description=long_description,
         long_description_content_type='text/markdown',
