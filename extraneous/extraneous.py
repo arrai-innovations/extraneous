@@ -116,7 +116,10 @@ def main(*args):
         action='store_true',
         help='Allows {} as extraneous packages.'.format(default_not_extraneous)
     )
-    parsed_args = parser.parse_args(args)
+    if args:
+        parsed_args = parser.parse_args(args)
+    else:
+        parsed_args = parser.parse_args()
     installed, editable, tree = read_installed(parsed_args.verbose)
     requirements = read_requirements(
         parsed_args.verbose,
@@ -130,6 +133,7 @@ def main(*args):
     if not parsed_args.full:
         not_extraneous |= set(default_not_extraneous)
     extraneous = installed - requirements - not_extraneous
+    uninstall = set()
     if extraneous:
         extraneous_str = ' '.join(sorted(extraneous))
         print(color(
@@ -141,6 +145,7 @@ def main(*args):
             extraneous_str,
             ' '.join(sorted(uninstall))
         ))
+    return extraneous, uninstall
 
 
 class BadArgumentError(ValueError):
