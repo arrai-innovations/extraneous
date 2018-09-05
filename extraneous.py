@@ -21,28 +21,36 @@ def parse_requirement(line):
     return re_operator.split(line)[0]
 
 
-def read_requirements(verbose=True):
+def read_requirements(verbose=True, include=None):
     cwd = os.getcwd()
     if verbose:
         print('reading requirements from:')
     reqs = set()
-    rnames = ['requirements.txt', 'local_requirements.txt', 'test_requirements.txt']
-    for rname in rnames:
+    for rname in include:
+        relative_path = os.path.relpath(rname, cwd)
         try:
-            with open(rname) as rfile:
+            with open(relative_path) as rfile:
                 if verbose:
-                    print('\t{cwd}/{rname}'.format(cwd=cwd, rname=rname))
+                    print('\t{}'.format(relative_path))
                 reqs |= set(parse_requirement(line) for line in rfile.read().split('\n') if line)
         except FileNotFoundError:
-            pass
+            if verbose:
+                print('\t{} (Not Found)'.format(relative_path))
+    if not reqs:
+        raise ValueError('No requirements found.{}'.format(
+            '' if verbose else ' Use -v for more information.'
+        ))
     return reqs
 
 
 def read_installed(verbose=True):
+    cwd = os.getcwd()
     from site import getsitepackages
     site_package_dirs = getsitepackages()
     if verbose:
-        print('reading installed from:\n\t{}'.format('\n\t'.join(site_package_dirs)))
+        print('reading installed from:\n\t{}'.format(
+            '\n\t'.join([os.path.relpath(x, cwd) for x in site_package_dirs])
+        ))
     pkgs = get_installed_distributions()
     dist_index = build_dist_index(pkgs)
     tree = construct_tree(dist_index)
@@ -98,7 +106,9 @@ if __name__ == '__main__':
         '--exclude', '-e',
         metavar='names',
         action='append',
-        help='Package names to not consider extraneous. {} are not considered extraneous packages.'.format(default_not_extraneous)
+        default=[],
+        help='Package names to not consider extraneous.'
+             ' {} are not considered extraneous packages.'.format(default_not_extraneous)
     )
     parser.add_argument(
         '--full', '-f',
@@ -109,17 +119,24 @@ if __name__ == '__main__':
     installed, editable, tree = read_installed(args.verbose)
     requirements = read_requirements(
         args.verbose,
-        include_requirements=args.include_requirements or default_requirements
+        include=args.include or default_requirements
     )
     for frozen, name in editable.items():
         if frozen in requirements:
             requirements.remove(frozen)
             requirements.add(name)
-    not_extraneous = set(args.exclude_packages)
+    not_extraneous = set(args.exclude)
     if not args.full:
         not_extraneous |= set(default_not_extraneous)
     extraneous = installed - requirements - not_extraneous
     if extraneous:
-        print(color('extraneous packages:\n\t{}'.format(' '.join(extraneous)), fg='yellow'))
-        uninstall = find_requirements_unique_to_projects(tree, extraneous) - not_extraneous
-        print('uninstall via:\n\tpip uninstall -y {}'.format(' '.join(uninstall)))
+        extraneous_str = ' '.join(sorted(extraneous))
+        print(color(
+            'extraneous packages:\n\t{}'.format(extraneous_str),
+            fg='yellow'
+        ))
+        uninstall = find_requirements_unique_to_projects(tree, extraneous) - not_extraneous - extraneous
+        print('uninstall via:\n\tpip uninstall -y {} {}'.format(
+            extraneous_str,
+            ' '.join(sorted(uninstall))
+        ))
