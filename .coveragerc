@@ -1,7 +1,9 @@
 [run]
 branch = True
+parallel = True
+concurrency = multiprocessing
 include =
-    extraneous.py
+    extraneous/extraneous.py
     tests.py
 
 [report]
