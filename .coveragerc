@@ -1,7 +1,7 @@
 [run]
 branch = True
 include =
-    extraneous.py
+    extraneous/extraneous.py
     tests.py
 
 [report]
