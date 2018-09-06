@@ -73,6 +73,17 @@ class ExtraneousTestCase(TestCase):
         with open('{cwd_path}/test_requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
             w.write('extraneous-top-package-3\n')
 
+    @classmethod
+    def get_sitepackages_for_venv(cls):
+        ran = cls.subcmd(
+            '{env_path}/bin/python -c "from site import getsitepackages; import os;'
+            'print(\'\\n\\t\'.join([os.path.relpath(x, os.getcwd()) for x in getsitepackages()]))"'.format(
+                env_path=cls.env_path
+            ),
+            cwd_path=cls.cwd_path
+        )
+        return ran.stdout.decode('utf8').strip()
+
     def test_verbose(self):
         extraneous = self.subcmd(
             '{env_path}/bin/extraneous.py -v'.format(env_path=self.env_path),
@@ -83,12 +94,7 @@ class ExtraneousTestCase(TestCase):
             'reading requirements from:\n\t{requirements}\n'
             '{extraneous}\n'
             'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                site_packages='\n\t'.join([
-                    os.path.relpath(x, self.cwd_path) for x in [
-                        os.path.join(self.env_path, 'lib64', 'python' + sys.version[:3], 'site-packages'),
-                        os.path.join(self.env_path, 'lib', 'python%d.%d' % sys.version_info[:2], 'site-packages'),
-                    ]]
-                ),
+                site_packages=self.get_sitepackages_for_venv(),
                 requirements='\n\t'.join([
                     'requirements.txt',
                     'local_requirements.txt (Not Found)',
@@ -180,12 +186,7 @@ class ExtraneousTestCase(TestCase):
                 'reading requirements from:\n\t{requirements}\n'
                 '{extraneous}\n'
                 'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                    site_packages='\n\t'.join([
-                        os.path.relpath(x, self.cwd_path) for x in [
-                            os.path.join(self.env_path, 'lib64', 'python' + sys.version[:3], 'site-packages'),
-                            os.path.join(self.env_path, 'lib', 'python%d.%d' % sys.version_info[:2], 'site-packages'),
-                        ]]
-                    ),
+                    site_packages=self.get_sitepackages_for_venv(),
                     requirements='\n\t'.join([
                         other_req.name
                     ]),
