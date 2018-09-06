@@ -26,15 +26,18 @@ def read_requirements(verbose=True, include=None):
         print('reading requirements from:')
     reqs = set()
     for rname in include:
-        relative_path = os.path.relpath(rname, cwd)
+        if os.path.isabs(rname):
+            path = rname
+        else:
+            path = os.path.relpath(rname, cwd)
         try:
-            with open(relative_path) as rfile:
+            with open(path) as rfile:
                 if verbose:
-                    print('\t{}'.format(relative_path))
+                    print('\t{}'.format(path))
                 reqs |= set(parse_requirement(line) for line in rfile.read().split('\n') if line)
         except FileNotFoundError:
             if verbose:
-                print('\t{} (Not Found)'.format(relative_path))
+                print('\t{} (Not Found)'.format(path))
     if not reqs:
         raise ValueError('No requirements found.{}'.format(
             '' if verbose else ' Use -v for more information.'
@@ -141,9 +144,8 @@ def main(*args):
             fg='yellow'
         ))
         uninstall = find_requirements_unique_to_projects(tree, extraneous) - not_extraneous - extraneous
-        print('uninstall via:\n\tpip uninstall -y {} {}'.format(
-            extraneous_str,
-            ' '.join(sorted(uninstall))
+        print('uninstall via:\n\tpip uninstall -y {}'.format(
+            ' '.join(sorted(extraneous) + sorted(uninstall))
         ))
     return extraneous, uninstall
 
