@@ -15,6 +15,13 @@ class ExtraneousTestCase(TestCase):
     env_path = ''
     _cwd_path = TemporaryDirectory()
     _env_path = TemporaryDirectory()
+    test_packages = [
+        'extraneous_sub_package_1',
+        'extraneous_sub_package_2',
+        'extraneous_top_package_1',
+        'extraneous_top_package_2',
+        'extraneous_top_package_3',
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -71,9 +78,9 @@ class ExtraneousTestCase(TestCase):
         )
 
     @classmethod
-    def setup_venv(cls, editable=False):
+    def setup_venv(cls):
         real_cwd = os.getcwd()
-        venv.create(cls.env_path, with_pip=True)
+        venv.create(cls.env_path, with_pip=True, symlinks=True)
         venv_vars = subprocess.run(
             'deactivate; source {env_path}/bin/activate; jq -n -M env'.format(env_path=cls.env_path),
             **{'shell': True, 'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE, 'check': True}
@@ -82,16 +89,13 @@ class ExtraneousTestCase(TestCase):
         cls.env_vars.pop('PYTHONPATH')
         cls.pip_install('pip setuptools coverage', upgrade=True)
         cls.pip_install(real_cwd, editable=True)
-        cls.subcmd('echo "import coverage; coverage.process_startup()" > `{env_path}/bin/python -c "import sys; print([x for x in sys.path if \'site-packages\' in x][0] + \'/coverage-all-the-things.pth\')"`'.format(
-            env_path=cls.env_path
-        ))
-        cls.pip_install(' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in [
-            'extraneous_sub_package_1',
-            'extraneous_sub_package_2',
-            'extraneous_top_package_1',
-            'extraneous_top_package_2',
-            'extraneous_top_package_3',
-        ]), editable=editable)
+        echo = 'echo "import coverage; coverage.process_startup()"'
+        pth_path = 'import sys; print(' \
+                   '[x for x in sys.path if \'site-packages\' in x][0] + \'/coverage-all-the-things.pth\'' \
+                   ')'
+        pth_wrap = '{env_path}/bin/python -c "{pth_path}"'.format(env_path=cls.env_path, pth_path=pth_path)
+        cls.subcmd('{echo} > `{pth_wrap}`'.format(echo=echo, pth_wrap=pth_wrap))
+        cls.pip_install(' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in cls.test_packages))
         with open('{cwd_path}/requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
             w.write('extraneous-top-package-1\n')
         with open('{cwd_path}/test_requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
@@ -239,6 +243,54 @@ exclude_lines =
         finally:
             os.unlink(other_req.name)
 
-    def test_installed_editable(self):
-        # todo: implement
-        pass
+    def test_zzz_last_zzz_installed_editable(self):
+        self.pip_install(
+            'git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict',
+            editable=True
+        )
+        extraneous = self.subcmd(
+            '{env_path}/bin/extraneous.py'.format(env_path=self.env_path),
+            coverage=True
+        )
+        self.assertMultiLineEqual(
+            '{extraneous}\n'
+            'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                extraneous=color(
+                    'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                        'extraneous-top-package-2', 'transmogrifydict'
+                    }))),
+                    fg='yellow'
+                ),
+                uninstall=' '.join(sorted({
+                    'extraneous-top-package-2', 'transmogrifydict'
+                }) + sorted({
+                    'extraneous-sub-package-2', 'six'
+                })),
+            ),
+            extraneous.stdout.decode('utf8')
+        )
+        with open('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path), mode='w') as w:
+            w.write(
+                '-e git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict\n'
+            )
+        extraneous = self.subcmd(
+            '{env_path}/bin/extraneous.py'.format(env_path=self.env_path),
+            coverage=True
+        )
+        self.assertMultiLineEqual(
+            '{extraneous}\n'
+            'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                extraneous=color(
+                    'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                        'extraneous-top-package-2'
+                    }))),
+                    fg='yellow'
+                ),
+                uninstall=' '.join(sorted({
+                    'extraneous-top-package-2'
+                }) + sorted({
+                    'extraneous-sub-package-2'
+                })),
+            ),
+            extraneous.stdout.decode('utf8')
+        )

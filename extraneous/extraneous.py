@@ -59,7 +59,7 @@ def read_installed(verbose=True):
     branch_keys = set(r.key for r in flatten(tree.values()))
     nodes = [p for p in tree.keys() if p.key not in branch_keys]
     project_names = set(p.project_name for p in nodes)
-    editable_packages = dict((p.render(frozen=True), p.project_name) for p in nodes if dist_is_editable(p._obj))
+    editable_packages = set(p.project_name for p in nodes if dist_is_editable(p._obj))
     return set(project_names), editable_packages, tree
 
 
@@ -128,10 +128,11 @@ def main(*args):
         parsed_args.verbose,
         include=parsed_args.include or default_requirements
     )
-    for frozen, name in editable.items():
-        if frozen in requirements:
-            requirements.remove(frozen)
-            requirements.add(name)
+    for name in editable:
+        for requirement in list(requirements):
+            if requirement.endswith('#egg={}'.format(name)):
+                requirements.remove(requirement)
+                requirements.add(name)
     not_extraneous = set(parsed_args.exclude)
     if not parsed_args.full:
         not_extraneous |= set(default_not_extraneous)
