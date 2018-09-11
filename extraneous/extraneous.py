@@ -79,16 +79,18 @@ def package_tree_to_name_tree(tree):
     return {k.project_name: set(i.project_name for i in v) for k, v in tree.items()}
 
 
-def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall, exclude_packages):
+def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
     name_tree = package_tree_to_name_tree(tree)
     name_rtree = package_tree_to_name_tree(reverse_tree(tree))
     packages_to_uninstall = set(name for name in root_package_names_to_uninstall)
 
     def add_to_uninstall(packages):
         for package in packages:
+            if package in requirements or package in exclude_packages:
+                continue
             required_by = name_rtree.get(package, set())
-            other_required_by = required_by - packages_to_uninstall
-            if not other_required_by and package not in exclude_packages:
+            other_required_by = required_by - packages_to_uninstall - requirements
+            if not other_required_by:
                 packages_to_uninstall.add(package)
                 p_requirements = name_tree.get(package, None)
                 if p_requirements:
@@ -155,7 +157,7 @@ def main(*args):
             'extraneous packages:\n\t{}'.format(' '.join(sorted(extraneous))),
             fg='yellow'
         ))
-        uninstall = find_requirements_unique_to_projects(tree, extraneous, not_extraneous) - extraneous
+        uninstall = find_requirements_unique_to_projects(tree, requirements, extraneous, not_extraneous) - extraneous
         print('uninstall via:\n\tpip uninstall -y {}'.format(
             ' '.join(sorted(extraneous) + sorted(uninstall))
         ))
