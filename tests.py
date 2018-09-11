@@ -85,16 +85,10 @@ class ExtraneousTestCase(TestCase):
     def setup_venv(cls):
         real_cwd = os.getcwd()
         venv.create(cls.env_path, with_pip=True, symlinks=True)
-        venv_vars = subprocess.run(
-            'deactivate; '
-            " source `find {env_path} -name 'activate'`; "
-            ' python -c "import json, os;print(json.dumps(dict(os.environ)))"'.format(
-                env_path=cls.env_path
-            ),
-            **{'shell': True, 'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE, 'check': True}
-        ).stdout
-        cls.env_vars = json.loads(venv_vars)
-        cls.env_vars.pop('PYTHONPATH')
+        cls.env_vars = {
+            'PATH': '{}/bin:'.format(cls.env_path) + os.environ.get('PATH'),
+            'VIRTUAL_ENV': cls.env_path,
+        }
         cls.pip_install('pip setuptools coverage', upgrade=True)
         cls.pip_install(real_cwd, editable=True)
         echo = 'echo "import coverage; coverage.process_startup()"'
