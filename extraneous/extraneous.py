@@ -1,6 +1,7 @@
 #!/bin/env python
 # Copyright (C) 2018 Arrai Innovations Inc. - All Rights Reserved
 import argparse
+import glob
 import os
 import re
 from itertools import chain
@@ -24,8 +25,12 @@ def read_requirements(verbose=True, include=None):
     cwd = os.getcwd()
     if verbose:
         print('reading requirements from:')
+    include_files = glob.glob('*requirements*.txt')
+    if include:
+        for include_dir in include:
+            include_files += glob.glob(os.path.join(include_dir, '*requirements*.txt'))
     reqs = set()
-    for rname in include:
+    for rname in include_files:
         if os.path.isabs(rname):
             path = rname
         else:
@@ -95,12 +100,12 @@ def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall):
 
 def main(*args):
     default_not_extraneous = ['extraneous', 'pipdeptree', 'pip', 'setuptools']
-    default_requirements = ['requirements.txt', 'local_requirements.txt', 'test_requirements.txt']
     parser = argparse_class(
         prog='extraneous.py',
         description='Identifies packages that are installed but not defined in requirements files. Prints the'
                     " 'pip uninstall' command that removes these extraneous packages and any non-common"
-                    ' dependencies.'
+                    " dependencies. Looks for packages matching '*requirements*.txt' in the current working"
+                    ' directory.'
     )
     parser.add_argument(
         '--verbose', '-v',
@@ -111,7 +116,7 @@ def main(*args):
         '--include', '-i',
         metavar='paths',
         action='append',
-        help='Requirements file paths to look for. If not defined, looks for {}.'.format(default_requirements)
+        help="Additional directories to look for '*requirements*.txt' files in."
     )
     parser.add_argument(
         '--exclude', '-e',
@@ -133,7 +138,7 @@ def main(*args):
     installed, editable, tree = read_installed(parsed_args.verbose)
     requirements = read_requirements(
         parsed_args.verbose,
-        include=parsed_args.include or default_requirements
+        include=parsed_args.include
     )
     for name in editable:
         for requirement in list(requirements):

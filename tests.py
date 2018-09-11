@@ -113,12 +113,13 @@ exclude_lines =
     except ImportError'''.format(env_path=cls.env_path))
 
     @classmethod
-    def get_sitepackages_for_venv(cls):
+    def get_sitepackages_for_venv(cls, cwd_path=None):
         ran = cls.subcmd(
             'python -c "from site import getsitepackages; import os;'
             'print(\'\\n\\t\'.join([os.path.relpath(x, os.getcwd()) for x in getsitepackages()]))"'.format(
                 env_path=cls.env_path
-            )
+            ),
+            cwd_path=cwd_path
         )
         return ran.stdout.decode('utf8').strip()
 
@@ -135,7 +136,6 @@ exclude_lines =
                 site_packages=self.get_sitepackages_for_venv(),
                 requirements='\n\t'.join([
                     'requirements.txt',
-                    'local_requirements.txt (Not Found)',
                     'test_requirements.txt'
                 ]),
                 extraneous=color(
@@ -209,14 +209,16 @@ exclude_lines =
         )
 
     def test_include(self):
-        other_req = NamedTemporaryFile(mode='w+', delete=False)
-        other_req.write('extraneous-top-package-2\ncoverage\n')
-        other_req.close()
-        try:
+        with TemporaryDirectory() as other_req_dir:
+            other_req_name = os.path.join(other_req_dir, 'requirements.txt')
+            with open(other_req_name, mode='w+') as other_req:
+                other_req.write('extraneous-top-package-2\ncoverage\n')
+            up_one = os.path.join(self.cwd_path, '..')
             extraneous = self.subcmd(
-                '{env_path}/bin/extraneous.py -v -i {other_req}'.format(
-                    env_path=self.env_path, other_req=other_req.name
+                '{env_path}/bin/extraneous.py -v -i {other_req_dir}'.format(
+                    env_path=self.env_path, other_req_dir=other_req_dir
                 ),
+                cwd_path=up_one,
                 coverage=True
             )
             self.assertMultiLineEqual(
@@ -224,9 +226,9 @@ exclude_lines =
                 'reading requirements from:\n\t{requirements}\n'
                 '{extraneous}\n'
                 'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                    site_packages=self.get_sitepackages_for_venv(),
+                    site_packages=self.get_sitepackages_for_venv(cwd_path=up_one),
                     requirements='\n\t'.join([
-                        other_req.name
+                        other_req_name
                     ]),
                     extraneous=color(
                         'extraneous packages:\n\t{}'.format(' '.join(sorted({
@@ -240,8 +242,6 @@ exclude_lines =
                 ),
                 extraneous.stdout.decode('utf8')
             )
-        finally:
-            os.unlink(other_req.name)
 
     def test_zzz_last_zzz_installed_editable(self):
         self.pip_install(
