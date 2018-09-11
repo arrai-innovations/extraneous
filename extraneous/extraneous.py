@@ -47,9 +47,16 @@ def read_requirements(verbose=True, include=None):
 
 def read_installed(verbose=True):
     cwd = os.getcwd()
-    from site import getsitepackages
-    site_package_dirs = getsitepackages()
     if verbose:
+        try:
+            # virtual environment with venv in python 3.3+
+            from site import getsitepackages
+            site_package_dirs = getsitepackages()
+        except ImportError:
+            # virtual environment with virtualenv
+            # https://github.com/pypa/virtualenv/issues/228
+            from distutils.sysconfig import get_python_lib
+            site_package_dirs = [get_python_lib()]
         print('reading installed from:\n\t{}'.format(
             '\n\t'.join([os.path.relpath(x, cwd) for x in site_package_dirs])
         ))
