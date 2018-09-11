@@ -87,7 +87,7 @@ class ExtraneousTestCase(TestCase):
         venv.create(cls.env_path, with_pip=True, symlinks=True)
         venv_vars = subprocess.run(
             'deactivate; '
-            ' source {env_path}/bin/activate; '
+            ' source activate; '
             ' python -c "import json, os;print(json.dumps(dict(os.environ)))"'.format(
                 env_path=cls.env_path
             ),
@@ -101,7 +101,7 @@ class ExtraneousTestCase(TestCase):
         pth_path = 'import sys; print(' \
                    '[x for x in sys.path if \'site-packages\' in x][0] + \'/coverage-all-the-things.pth\'' \
                    ')'
-        pth_wrap = '{env_path}/bin/python -c "{pth_path}"'.format(env_path=cls.env_path, pth_path=pth_path)
+        pth_wrap = 'python -c "{pth_path}"'.format(env_path=cls.env_path, pth_path=pth_path)
         cls.subcmd('{echo} > `{pth_wrap}`'.format(echo=echo, pth_wrap=pth_wrap))
         cls.pip_install(' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in cls.test_packages))
         with open('{cwd_path}/requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
@@ -133,7 +133,7 @@ exclude_lines =
 
     def test_verbose(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -v'.format(env_path=self.env_path),
+            'extraneous.py -v',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -168,7 +168,7 @@ exclude_lines =
 
     def test_full(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -f'.format(env_path=self.env_path),
+            'extraneous.py -f',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -203,9 +203,7 @@ exclude_lines =
 
     def test_exclude_top(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -e extraneous-top-package-2 -e extraneous-top-package-4'.format(
-                env_path=self.env_path
-            ),
+            'extraneous.py -e extraneous-top-package-2 -e extraneous-top-package-4',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -215,9 +213,7 @@ exclude_lines =
 
     def test_exclude_sub(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -e extraneous-sub-package-2 -e extraneous-sub-package-3'.format(
-                env_path=self.env_path
-            ),
+            'extraneous.py -e extraneous-sub-package-2 -e extraneous-sub-package-3',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -246,9 +242,7 @@ exclude_lines =
                 other_req.write('extraneous-top-package-2\ncoverage\n')
             up_one = os.path.join(self.cwd_path, '..')
             extraneous = self.subcmd(
-                '{env_path}/bin/extraneous.py -v -i {other_req_dir}'.format(
-                    env_path=self.env_path, other_req_dir=other_req_dir
-                ),
+                'extraneous.py -v -i {other_req_dir}'.format(other_req_dir=other_req_dir),
                 cwd_path=up_one,
                 coverage=True
             )
@@ -288,7 +282,7 @@ exclude_lines =
             editable=True
         )
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py'.format(env_path=self.env_path),
+            'extraneous.py',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -321,7 +315,7 @@ exclude_lines =
                 '-e git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict\n'
             )
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py'.format(env_path=self.env_path),
+            'extraneous.py',
             coverage=True
         )
         self.assertMultiLineEqual(
