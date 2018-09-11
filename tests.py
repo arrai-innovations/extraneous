@@ -86,7 +86,11 @@ class ExtraneousTestCase(TestCase):
         real_cwd = os.getcwd()
         venv.create(cls.env_path, with_pip=True, symlinks=True)
         venv_vars = subprocess.run(
-            'deactivate; source {env_path}/bin/activate; jq -n -M env'.format(env_path=cls.env_path),
+            'deactivate; '
+            ' source {env_path}/bin/activate; '
+            ' python -c "import json, os;print(json.dumps(dict(os.environ)))"'.format(
+                env_path=cls.env_path
+            ),
             **{'shell': True, 'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE, 'check': True}
         ).stdout
         cls.env_vars = json.loads(venv_vars)
