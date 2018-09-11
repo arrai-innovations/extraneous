@@ -82,6 +82,19 @@ class ExtraneousTestCase(TestCase):
         )
 
     @classmethod
+    def write_covergerc(cls, path):
+        with open('{}/.coveragerc'.format(path), mode='w') as w:
+            w.write('''[run]
+branch = True
+parallel = True
+include = *extraneous/extraneous.py
+
+[report]
+exclude_lines =
+    raise NotImplementedError
+    except ImportError''')
+
+    @classmethod
     def setup_venv(cls):
         real_cwd = os.getcwd()
         venv.create(cls.env_path, with_pip=True, symlinks=True)
@@ -102,17 +115,7 @@ class ExtraneousTestCase(TestCase):
             w.write('extraneous-top-package-1\n')
         with open('{cwd_path}/test_requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
             w.write('extraneous-top-package-3\ncoverage\n')
-        with open('{cwd_path}/.coveragerc'.format(cwd_path=cls.cwd_path), mode='w') as w:
-            w.write('''[run]
-branch = True
-parallel = True
-concurrency = multiprocessing
-include = *extraneous/extraneous.py
-
-[report]
-exclude_lines =
-    raise NotImplementedError
-    except ImportError'''.format(env_path=cls.env_path))
+        cls.write_covergerc(cls.cwd_path)
 
     @classmethod
     def get_sitepackages_for_venv(cls, cwd_path=None):
@@ -234,41 +237,45 @@ exclude_lines =
             other_req_name = os.path.join(other_req_dir, 'requirements.txt')
             with open(other_req_name, mode='w+') as other_req:
                 other_req.write('extraneous-top-package-2\ncoverage\n')
-            up_one = os.path.join(self.cwd_path, '..')
-            extraneous = self.subcmd(
-                '`which extraneous.py` -v -i {other_req_dir}'.format(other_req_dir=other_req_dir),
-                cwd_path=up_one,
-                coverage=True
-            )
-            self.assertMultiLineEqual(
-                'reading installed from:\n\t{site_packages}\n'
-                'reading requirements from:\n\t{requirements}\n'
-                '{extraneous}\n'
-                'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                    site_packages=self.get_sitepackages_for_venv(cwd_path=up_one),
-                    requirements='\n\t'.join([
-                        other_req_name
-                    ]),
-                    extraneous=color(
-                        'extraneous packages:\n\t{}'.format(' '.join(sorted({
+            with TemporaryDirectory() as my_coverage_dir:
+                self.write_covergerc(my_coverage_dir)
+                extraneous = self.subcmd(
+                    '`which extraneous.py` -v -i {other_req_dir}'.format(other_req_dir=other_req_dir),
+                    cwd_path=my_coverage_dir,
+                    coverage=True
+                )
+                self.subcmd('cp {my_coverage_dir}/.coverage.* {cwd_path}/'.format(
+                    my_coverage_dir=my_coverage_dir, cwd_path=self.cwd_path
+                ))
+                self.assertMultiLineEqual(
+                    'reading installed from:\n\t{site_packages}\n'
+                    'reading requirements from:\n\t{requirements}\n'
+                    '{extraneous}\n'
+                    'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                        site_packages=self.get_sitepackages_for_venv(cwd_path=my_coverage_dir),
+                        requirements='\n\t'.join([
+                            other_req_name
+                        ]),
+                        extraneous=color(
+                            'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                                'extraneous-top-package-1',
+                                'extraneous-top-package-3',
+                                'extraneous-top-package-4'
+                            }))),
+                            fg='yellow'
+                        ),
+                        uninstall=' '.join(sorted({
                             'extraneous-top-package-1',
                             'extraneous-top-package-3',
                             'extraneous-top-package-4'
-                        }))),
-                        fg='yellow'
+                        }) + sorted({
+                            'extraneous-sub-package-3',
+                            'extraneous-sub-sub-package-1',
+                            'extraneous-sub-sub-package-2',
+                        })),
                     ),
-                    uninstall=' '.join(sorted({
-                        'extraneous-top-package-1',
-                        'extraneous-top-package-3',
-                        'extraneous-top-package-4'
-                    }) + sorted({
-                        'extraneous-sub-package-3',
-                        'extraneous-sub-sub-package-1',
-                        'extraneous-sub-sub-package-2',
-                    })),
-                ),
-                extraneous.stdout.decode('utf8')
-            )
+                    extraneous.stdout.decode('utf8')
+                )
 
     def test_zzz_last_zzz_installed_editable(self):
         self.pip_install(
