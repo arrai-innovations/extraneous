@@ -89,7 +89,7 @@ def find_requirements_unique_to_projects(tree, requirements, root_package_names_
             if package in requirements or package in exclude_packages:
                 continue
             required_by = name_rtree.get(package, set())
-            other_required_by = required_by - packages_to_uninstall - requirements
+            other_required_by = required_by - packages_to_uninstall
             if not other_required_by:
                 packages_to_uninstall.add(package)
                 p_requirements = name_tree.get(package, None)
