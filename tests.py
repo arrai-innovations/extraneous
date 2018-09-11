@@ -87,7 +87,7 @@ class ExtraneousTestCase(TestCase):
         venv.create(cls.env_path, with_pip=True, symlinks=True)
         venv_vars = subprocess.run(
             'deactivate; '
-            ' source activate; '
+            " source `find {env_path} -name 'activate'`; "
             ' python -c "import json, os;print(json.dumps(dict(os.environ)))"'.format(
                 env_path=cls.env_path
             ),
@@ -133,7 +133,7 @@ exclude_lines =
 
     def test_verbose(self):
         extraneous = self.subcmd(
-            'extraneous.py -v',
+            '`which extraneous.py` -v',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -168,7 +168,7 @@ exclude_lines =
 
     def test_full(self):
         extraneous = self.subcmd(
-            'extraneous.py -f',
+            '`which extraneous.py` -f',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -203,7 +203,7 @@ exclude_lines =
 
     def test_exclude_top(self):
         extraneous = self.subcmd(
-            'extraneous.py -e extraneous-top-package-2 -e extraneous-top-package-4',
+            '`which extraneous.py` -e extraneous-top-package-2 -e extraneous-top-package-4',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -213,7 +213,7 @@ exclude_lines =
 
     def test_exclude_sub(self):
         extraneous = self.subcmd(
-            'extraneous.py -e extraneous-sub-package-2 -e extraneous-sub-package-3',
+            '`which extraneous.py` -e extraneous-sub-package-2 -e extraneous-sub-package-3',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -242,7 +242,7 @@ exclude_lines =
                 other_req.write('extraneous-top-package-2\ncoverage\n')
             up_one = os.path.join(self.cwd_path, '..')
             extraneous = self.subcmd(
-                'extraneous.py -v -i {other_req_dir}'.format(other_req_dir=other_req_dir),
+                '`which extraneous.py` -v -i {other_req_dir}'.format(other_req_dir=other_req_dir),
                 cwd_path=up_one,
                 coverage=True
             )
@@ -282,7 +282,7 @@ exclude_lines =
             editable=True
         )
         extraneous = self.subcmd(
-            'extraneous.py',
+            '`which extraneous.py`',
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -315,7 +315,7 @@ exclude_lines =
                 '-e git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict\n'
             )
         extraneous = self.subcmd(
-            'extraneous.py',
+            '`which extraneous.py`',
             coverage=True
         )
         self.assertMultiLineEqual(
