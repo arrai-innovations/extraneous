@@ -1,6 +1,7 @@
 #!/bin/env python
 # Copyright (C) 2018 Arrai Innovations Inc. - All Rights Reserved
 import argparse
+import glob
 import os
 import re
 from itertools import chain
@@ -24,8 +25,12 @@ def read_requirements(verbose=True, include=None):
     cwd = os.getcwd()
     if verbose:
         print('reading requirements from:')
+    include_files = sorted(glob.glob('*requirements*.txt'))
+    if include:
+        for include_dir in include:
+            include_files += sorted(glob.glob(os.path.join(include_dir, '*requirements*.txt')))
     reqs = set()
-    for rname in include:
+    for rname in include_files:
         if os.path.isabs(rname):
             path = rname
         else:
@@ -47,9 +52,16 @@ def read_requirements(verbose=True, include=None):
 
 def read_installed(verbose=True):
     cwd = os.getcwd()
-    from site import getsitepackages
-    site_package_dirs = getsitepackages()
     if verbose:
+        try:
+            # virtual environment with venv in python 3.3+
+            from site import getsitepackages
+            site_package_dirs = getsitepackages()
+        except ImportError:
+            # virtual environment with virtualenv
+            # https://github.com/pypa/virtualenv/issues/228
+            from distutils.sysconfig import get_python_lib
+            site_package_dirs = [get_python_lib()]
         print('reading installed from:\n\t{}'.format(
             '\n\t'.join([os.path.relpath(x, cwd) for x in site_package_dirs])
         ))
@@ -67,15 +79,17 @@ def package_tree_to_name_tree(tree):
     return {k.project_name: set(i.project_name for i in v) for k, v in tree.items()}
 
 
-def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall):
+def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
     name_tree = package_tree_to_name_tree(tree)
     name_rtree = package_tree_to_name_tree(reverse_tree(tree))
     packages_to_uninstall = set(name for name in root_package_names_to_uninstall)
 
     def add_to_uninstall(packages):
         for package in packages:
+            if package in requirements or package in exclude_packages:
+                continue
             required_by = name_rtree.get(package, set())
-            other_required_by = required_by - root_package_names_to_uninstall
+            other_required_by = required_by - packages_to_uninstall
             if not other_required_by:
                 packages_to_uninstall.add(package)
                 p_requirements = name_tree.get(package, None)
@@ -88,12 +102,12 @@ def find_requirements_unique_to_projects(tree, root_package_names_to_uninstall):
 
 def main(*args):
     default_not_extraneous = ['extraneous', 'pipdeptree', 'pip', 'setuptools']
-    default_requirements = ['requirements.txt', 'local_requirements.txt', 'test_requirements.txt']
     parser = argparse_class(
         prog='extraneous.py',
         description='Identifies packages that are installed but not defined in requirements files. Prints the'
                     " 'pip uninstall' command that removes these extraneous packages and any non-common"
-                    ' dependencies.'
+                    " dependencies. Looks for packages matching '*requirements*.txt' in the current working"
+                    ' directory.'
     )
     parser.add_argument(
         '--verbose', '-v',
@@ -104,7 +118,7 @@ def main(*args):
         '--include', '-i',
         metavar='paths',
         action='append',
-        help='Requirements file paths to look for. If not defined, looks for {}.'.format(default_requirements)
+        help="Additional directories to look for '*requirements*.txt' files in."
     )
     parser.add_argument(
         '--exclude', '-e',
@@ -126,7 +140,7 @@ def main(*args):
     installed, editable, tree = read_installed(parsed_args.verbose)
     requirements = read_requirements(
         parsed_args.verbose,
-        include=parsed_args.include or default_requirements
+        include=parsed_args.include
     )
     for name in editable:
         for requirement in list(requirements):
@@ -139,12 +153,11 @@ def main(*args):
     extraneous = installed - requirements - not_extraneous
     uninstall = set()
     if extraneous:
-        extraneous_str = ' '.join(sorted(extraneous))
         print(color(
-            'extraneous packages:\n\t{}'.format(extraneous_str),
+            'extraneous packages:\n\t{}'.format(' '.join(sorted(extraneous))),
             fg='yellow'
         ))
-        uninstall = find_requirements_unique_to_projects(tree, extraneous) - not_extraneous - extraneous
+        uninstall = find_requirements_unique_to_projects(tree, requirements, extraneous, not_extraneous) - extraneous
         print('uninstall via:\n\tpip uninstall -y {}'.format(
             ' '.join(sorted(extraneous) + sorted(uninstall))
         ))
