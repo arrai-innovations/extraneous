@@ -25,10 +25,10 @@ def read_requirements(verbose=True, include=None):
     cwd = os.getcwd()
     if verbose:
         print('reading requirements from:')
-    include_files = glob.glob('*requirements*.txt')
+    include_files = sorted(glob.glob('*requirements*.txt'))
     if include:
         for include_dir in include:
-            include_files += glob.glob(os.path.join(include_dir, '*requirements*.txt'))
+            include_files += sorted(glob.glob(os.path.join(include_dir, '*requirements*.txt')))
     reqs = set()
     for rname in include_files:
         if os.path.isabs(rname):
