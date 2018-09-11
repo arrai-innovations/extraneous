@@ -3,24 +3,28 @@ import json
 import os
 import subprocess
 import venv
-import sys
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 from colors import color
 
 
 class ExtraneousTestCase(TestCase):
+    maxDiff = None
     cwd_path = ''
     env_path = ''
     _cwd_path = TemporaryDirectory()
     _env_path = TemporaryDirectory()
     test_packages = [
+        'extraneous_sub_sub_package_1',
+        'extraneous_sub_sub_package_2',
         'extraneous_sub_package_1',
         'extraneous_sub_package_2',
+        'extraneous_sub_package_3',
         'extraneous_top_package_1',
         'extraneous_top_package_2',
         'extraneous_top_package_3',
+        'extraneous_top_package_4',
     ]
 
     @classmethod
@@ -141,13 +145,18 @@ exclude_lines =
                 extraneous=color(
                     'extraneous packages:\n\t{}'.format(' '.join(sorted({
                         'extraneous-top-package-2',
+                        'extraneous-top-package-4'
                     }))),
                     fg='yellow'
                 ),
                 uninstall=' '.join(sorted({
                     'extraneous-top-package-2',
+                    'extraneous-top-package-4'
                 }) + sorted({
                     'extraneous-sub-package-2',
+                    'extraneous-sub-package-3',
+                    'extraneous-sub-sub-package-1',
+                    'extraneous-sub-sub-package-2',
                 })),
             ),
             extraneous.stdout.decode('utf8')
@@ -163,14 +172,26 @@ exclude_lines =
             'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
                 extraneous=color(
                     'extraneous packages:\n\t{}'.format(' '.join(sorted({
-                        'extraneous-top-package-2', 'extraneous', 'setuptools'
+                        'extraneous-top-package-2',
+                        'extraneous',
+                        'setuptools',
+                        'extraneous-top-package-4'
                     }))),
                     fg='yellow'
                 ),
                 uninstall=' '.join(sorted({
-                    'extraneous-top-package-2', 'extraneous', 'setuptools'
+                    'extraneous-top-package-2',
+                    'extraneous',
+                    'setuptools',
+                    'extraneous-top-package-4'
                 }) + sorted({
-                    'extraneous-sub-package-2', 'ansicolors', 'pipdeptree'
+                    'extraneous-sub-package-2',
+                    'ansicolors',
+                    'pipdeptree',
+                    'pip',
+                    'extraneous-sub-package-3',
+                    'extraneous-sub-sub-package-1',
+                    'extraneous-sub-sub-package-2',
                 })),
             ),
             extraneous.stdout.decode('utf8')
@@ -178,7 +199,9 @@ exclude_lines =
 
     def test_exclude_top(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -e extraneous-top-package-2'.format(env_path=self.env_path),
+            '{env_path}/bin/extraneous.py -e extraneous-top-package-2 -e extraneous-top-package-4'.format(
+                env_path=self.env_path
+            ),
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -188,7 +211,9 @@ exclude_lines =
 
     def test_exclude_sub(self):
         extraneous = self.subcmd(
-            '{env_path}/bin/extraneous.py -e extraneous-sub-package-2'.format(env_path=self.env_path),
+            '{env_path}/bin/extraneous.py -e extraneous-sub-package-2 -e extraneous-sub-package-3'.format(
+                env_path=self.env_path
+            ),
             coverage=True
         )
         self.assertMultiLineEqual(
@@ -197,12 +222,14 @@ exclude_lines =
                 extraneous=color(
                     'extraneous packages:\n\t{}'.format(' '.join(sorted({
                         'extraneous-top-package-2',
+                        'extraneous-top-package-4'
                     }))),
                     fg='yellow'
                 ),
                 uninstall=' '.join(sorted({
+                    'extraneous-top-package-2',
+                    'extraneous-top-package-4',
                 }) + sorted({
-                    'extraneous-top-package-2'
                 })),
             ),
             extraneous.stdout.decode('utf8')
@@ -232,12 +259,20 @@ exclude_lines =
                     ]),
                     extraneous=color(
                         'extraneous packages:\n\t{}'.format(' '.join(sorted({
-                            'extraneous-top-package-1', 'extraneous-top-package-3',
+                            'extraneous-top-package-1',
+                            'extraneous-top-package-3',
+                            'extraneous-top-package-4'
                         }))),
                         fg='yellow'
                     ),
                     uninstall=' '.join(sorted({
-                        'extraneous-top-package-1', 'extraneous-top-package-3',
+                        'extraneous-top-package-1',
+                        'extraneous-top-package-3',
+                        'extraneous-top-package-4'
+                    }) + sorted({
+                        'extraneous-sub-package-3',
+                        'extraneous-sub-sub-package-1',
+                        'extraneous-sub-sub-package-2',
                     })),
                 ),
                 extraneous.stdout.decode('utf8')
@@ -257,14 +292,22 @@ exclude_lines =
             'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
                 extraneous=color(
                     'extraneous packages:\n\t{}'.format(' '.join(sorted({
-                        'extraneous-top-package-2', 'transmogrifydict'
+                        'extraneous-top-package-2',
+                        'transmogrifydict',
+                        'extraneous-top-package-4'
                     }))),
                     fg='yellow'
                 ),
                 uninstall=' '.join(sorted({
-                    'extraneous-top-package-2', 'transmogrifydict'
+                    'extraneous-top-package-2',
+                    'transmogrifydict',
+                    'extraneous-top-package-4'
                 }) + sorted({
-                    'extraneous-sub-package-2', 'six'
+                    'extraneous-sub-package-2',
+                    'six',
+                    'extraneous-sub-package-3',
+                    'extraneous-sub-sub-package-1',
+                    'extraneous-sub-sub-package-2',
                 })),
             ),
             extraneous.stdout.decode('utf8')
@@ -282,14 +325,19 @@ exclude_lines =
             'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
                 extraneous=color(
                     'extraneous packages:\n\t{}'.format(' '.join(sorted({
-                        'extraneous-top-package-2'
+                        'extraneous-top-package-2',
+                        'extraneous-top-package-4'
                     }))),
                     fg='yellow'
                 ),
                 uninstall=' '.join(sorted({
-                    'extraneous-top-package-2'
+                    'extraneous-top-package-2',
+                    'extraneous-top-package-4'
                 }) + sorted({
-                    'extraneous-sub-package-2'
+                    'extraneous-sub-package-2',
+                    'extraneous-sub-package-3',
+                    'extraneous-sub-sub-package-1',
+                    'extraneous-sub-sub-package-2',
                 })),
             ),
             extraneous.stdout.decode('utf8')
