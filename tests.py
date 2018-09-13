@@ -71,9 +71,10 @@ class ExtraneousTestCase(TestCase):
         return ran
 
     @classmethod
-    def pip_install(cls, package, editable=False, upgrade=False):
+    def pip_install(cls, package, editable=False, upgrade=False, uninstall=False):
         return cls.subcmd(
-            'python -m pip install {upgrade}{editable}{package}'.format(
+            'python -m pip {install} {upgrade}{editable}{package}'.format(
+                install='uninstall -y' if uninstall else 'install',
                 env_path=cls.env_path,
                 upgrade='--upgrade ' if upgrade else '',
                 editable='-e ' if editable else '',
@@ -277,67 +278,125 @@ exclude_lines =
                     extraneous.stdout.decode('utf8')
                 )
 
-    def test_zzz_last_zzz_installed_editable(self):
+    def test_installed_editable(self):
         self.pip_install(
             'git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict',
             editable=True
         )
-        extraneous = self.subcmd(
-            '`which extraneous.py`',
-            coverage=True
-        )
-        self.assertMultiLineEqual(
-            '{extraneous}\n'
-            'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                extraneous=color(
-                    'extraneous packages:\n\t{}'.format(' '.join(sorted({
+        try:
+            extraneous = self.subcmd(
+                '`which extraneous.py`',
+                coverage=True
+            )
+            self.assertMultiLineEqual(
+                '{extraneous}\n'
+                'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                    extraneous=color(
+                        'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                            'extraneous-top-package-2',
+                            'transmogrifydict',
+                            'extraneous-top-package-4'
+                        }))),
+                        fg='yellow'
+                    ),
+                    uninstall=' '.join(sorted({
                         'extraneous-top-package-2',
                         'transmogrifydict',
                         'extraneous-top-package-4'
-                    }))),
-                    fg='yellow'
+                    }) + sorted({
+                        'extraneous-sub-package-2',
+                        'six',
+                        'extraneous-sub-package-3',
+                        'extraneous-sub-sub-package-1',
+                        'extraneous-sub-sub-package-2',
+                    })),
                 ),
-                uninstall=' '.join(sorted({
-                    'extraneous-top-package-2',
-                    'transmogrifydict',
-                    'extraneous-top-package-4'
-                }) + sorted({
-                    'extraneous-sub-package-2',
-                    'six',
-                    'extraneous-sub-package-3',
-                    'extraneous-sub-sub-package-1',
-                    'extraneous-sub-sub-package-2',
-                })),
-            ),
-            extraneous.stdout.decode('utf8')
-        )
-        with open('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path), mode='w') as w:
-            w.write(
-                '-e git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict\n'
+                extraneous.stdout.decode('utf8')
             )
-        extraneous = self.subcmd(
-            '`which extraneous.py`',
-            coverage=True
+            with open('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path), mode='w') as w:
+                w.write(
+                    '-e git+ssh://git@github.com/arrai-innovations/transmogrifydict.git#egg=transmogrifydict\n'
+                )
+            try:
+                extraneous = self.subcmd(
+                    '`which extraneous.py`',
+                    coverage=True
+                )
+                self.assertMultiLineEqual(
+                    '{extraneous}\n'
+                    'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                        extraneous=color(
+                            'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                                'extraneous-top-package-2',
+                                'extraneous-top-package-4'
+                            }))),
+                            fg='yellow'
+                        ),
+                        uninstall=' '.join(sorted({
+                            'extraneous-top-package-2',
+                            'extraneous-top-package-4'
+                        }) + sorted({
+                            'extraneous-sub-package-2',
+                            'extraneous-sub-package-3',
+                            'extraneous-sub-sub-package-1',
+                            'extraneous-sub-sub-package-2',
+                        })),
+                    ),
+                    extraneous.stdout.decode('utf8')
+                )
+            finally:
+                os.unlink('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path))
+        finally:
+            self.pip_install('transmogrifydict six', uninstall=True)
+
+    def test_mixed_case_requirements_and_package_names(self):
+        real_cwd = os.getcwd()
+        self.pip_install(
+            ' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in [
+                'extraneous_SubCased_package', 'extraneous_CASED_package'
+            ])
         )
-        self.assertMultiLineEqual(
-            '{extraneous}\n'
-            'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
-                extraneous=color(
-                    'extraneous packages:\n\t{}'.format(' '.join(sorted({
-                        'extraneous-top-package-2',
-                        'extraneous-top-package-4'
-                    }))),
-                    fg='yellow'
-                ),
-                uninstall=' '.join(sorted({
-                    'extraneous-top-package-2',
-                    'extraneous-top-package-4'
-                }) + sorted({
-                    'extraneous-sub-package-2',
-                    'extraneous-sub-package-3',
-                    'extraneous-sub-sub-package-1',
-                    'extraneous-sub-sub-package-2',
-                })),
-            ),
-            extraneous.stdout.decode('utf8')
-        )
+        try:
+            with open('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path), mode='w') as w:
+                w.write(
+                    'extraneous_cased_PACKAGE\n'
+                )
+            try:
+                extraneous = self.subcmd(
+                    '`which extraneous.py` -v',
+                    coverage=True
+                )
+                self.assertMultiLineEqual(
+                    'reading installed from:\n\t{site_packages}\n'
+                    'reading requirements from:\n\t{requirements}\n'
+                    '{extraneous}\n'
+                    'uninstall via:\n\tpip uninstall -y {uninstall}\n'.format(
+                        site_packages=self.get_sitepackages_for_venv(cwd_path=self.cwd_path),
+                        requirements='\n\t'.join([
+                            'local_requirements.txt',
+                            'requirements.txt',
+                            'test_requirements.txt'
+                        ]),
+                        extraneous=color(
+                            'extraneous packages:\n\t{}'.format(' '.join(sorted({
+                                'extraneous-top-package-2',
+                                'extraneous-top-package-4'
+                            }))),
+                            fg='yellow'
+                        ),
+                        uninstall=' '.join(sorted({
+                            'extraneous-top-package-2',
+                            'extraneous-top-package-4'
+                        }) + sorted({
+                            'extraneous-sub-package-2',
+                            'extraneous-sub-package-3',
+                            'extraneous-sub-sub-package-1',
+                            'extraneous-sub-sub-package-2',
+                        })),
+                    ),
+                    extraneous.stdout.decode('utf8')
+                )
+            finally:
+                os.unlink('{cwd_path}/local_requirements.txt'.format(cwd_path=self.cwd_path))
+        finally:
+            self.pip_install('extraneous_SubCased_package extraneous_CASED_package', uninstall=True)

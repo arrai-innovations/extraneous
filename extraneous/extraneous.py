@@ -15,6 +15,13 @@ flatten = chain.from_iterable
 re_operator = re.compile(r'[>=]')
 
 
+def normalize_package_name(name):
+    """
+    https://www.python.org/dev/peps/pep-0503/#normalized-names
+    """
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
 def parse_requirement(line):
     if line.startswith('-e'):
         return line
@@ -47,7 +54,7 @@ def read_requirements(verbose=True, include=None):
         raise ValueError('No requirements found.{}'.format(
             '' if verbose else ' Use -v for more information.'
         ))
-    return reqs
+    return {normalize_package_name(x) for x in reqs}
 
 
 def read_installed(verbose=True):
@@ -70,13 +77,14 @@ def read_installed(verbose=True):
     tree = construct_tree(dist_index)
     branch_keys = set(r.key for r in flatten(tree.values()))
     nodes = [p for p in tree.keys() if p.key not in branch_keys]
-    project_names = set(p.project_name for p in nodes)
-    editable_packages = set(p.project_name for p in nodes if dist_is_editable(p._obj))
+    project_names = set(normalize_package_name(p.project_name) for p in nodes)
+    editable_packages = set(normalize_package_name(p.project_name) for p in nodes if dist_is_editable(p._obj))
     return set(project_names), editable_packages, tree
 
 
 def package_tree_to_name_tree(tree):
-    return {k.project_name: set(i.project_name for i in v) for k, v in tree.items()}
+    return {normalize_package_name(k.project_name): set(normalize_package_name(i.project_name) for i in v) for k, v in
+            tree.items()}
 
 
 def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
