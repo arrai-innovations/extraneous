@@ -32,12 +32,11 @@ class ExtraneousTestCase(TestCase):
         cls.cwd_path = cls._cwd_path.__enter__()
         cls.env_path = cls._env_path.__enter__()
         cls.setup_venv()
-        cls.subcmd('coverage erase', cwd_path=os.getcwd(), parent_envs=True)
 
     @classmethod
     def tearDownClass(cls):
         cls.subcmd('cp {cwd_path}/.coverage.* {real_cwd}/'.format(cwd_path=cls.cwd_path, real_cwd=os.getcwd()))
-        cls.subcmd('coverage combine', cwd_path=os.getcwd(), parent_envs=True)
+        cls.subcmd('coverage combine -a', cwd_path=os.getcwd(), parent_envs=True)
         try:
             cls.subcmd('rm -rf htmlcov', cwd_path=os.getcwd(), parent_envs=True)
         except subprocess.CalledProcessError:
