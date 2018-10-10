@@ -7,8 +7,10 @@ import re
 from itertools import chain
 
 from colors import color
-from pip._internal import get_installed_distributions
-from pip._internal.utils.misc import dist_is_editable
+try:
+    from pip._internal.utils.misc import get_installed_distributions, dist_is_editable
+except ImportError:
+    from pip import get_installed_distributions, dist_is_editable
 from pipdeptree import build_dist_index, construct_tree, reverse_tree
 
 flatten = chain.from_iterable
