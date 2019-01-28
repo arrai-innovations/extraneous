@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   utils: arrai/utils@1.1.0
-  flake8: arrai/flake8@4.0.0
+  flake8: arrai/flake8@4.4.0
 executors:
   python37:
     environment:
@@ -76,3 +76,18 @@ workflows:
       - flake8/flake8:
           name: flake8
           context: arrai-global
+  weekly:
+    jobs:
+      - python37:
+          context: arrai-global
+      - flake8/flake8:
+          name: flake8
+          context: arrai-global
+    triggers:
+      - schedule:
+          cron: "0 2 * * 1"
+          filters:
+            branches:
+              only:
+                - master
+                - develop
