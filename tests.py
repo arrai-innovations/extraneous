@@ -1,5 +1,4 @@
 # Copyright (C) 2018 Arrai Innovations Inc. - All Rights Reserved
-import json
 import os
 import subprocess
 import venv
@@ -13,6 +12,7 @@ class ExtraneousTestCase(TestCase):
     maxDiff = None
     cwd_path = ''
     env_path = ''
+    env_vars = None
     _cwd_path = TemporaryDirectory()
     _env_path = TemporaryDirectory()
     test_packages = [
@@ -61,7 +61,7 @@ class ExtraneousTestCase(TestCase):
         ran = subprocess.run(cmd, **kwargs)
         try:
             ran.check_returncode()
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             if ran.stdout:
                 print('stdout', ran.stdout)
             if ran.stderr:
@@ -102,7 +102,7 @@ exclude_lines =
             'PATH': '{}/bin:'.format(cls.env_path) + os.environ.get('PATH'),
             'VIRTUAL_ENV': cls.env_path,
         }
-        cls.pip_install('pip setuptools coverage', upgrade=True)
+        cls.pip_install('-r {real_cwd}/test_requirements.txt'.format(real_cwd=real_cwd))
         cls.pip_install(real_cwd, editable=True)
         echo = 'echo "import coverage; coverage.process_startup()"'
         pth_path = 'import sys; print(' \
@@ -113,8 +113,11 @@ exclude_lines =
         cls.pip_install(' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in cls.test_packages))
         with open('{cwd_path}/requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
             w.write('extraneous-top-package-1\n')
-        with open('{cwd_path}/test_requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
-            w.write('extraneous-top-package-3\ncoverage\n')
+        cls.subcmd('cp {real_cwd}/test_requirements.txt {cwd_path}/test_requirements.txt'.format(
+            real_cwd=real_cwd, cwd_path=cls.cwd_path
+        ))
+        with open('{cwd_path}/test_requirements.txt'.format(cwd_path=cls.cwd_path), mode='a') as a:
+            a.write('extraneous-top-package-3\n')
         cls.write_covergerc(cls.cwd_path)
 
     @classmethod
