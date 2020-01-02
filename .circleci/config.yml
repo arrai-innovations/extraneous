@@ -87,12 +87,15 @@ workflows:
   test:
     jobs:
       - pythontests:
+          name: python36
           executor: python36
           context: arrai-global
       - pythontests:
+          name: python37
           executor: python37
           context: arrai-global
       - pythontests:
+          name: python38
           executor: python38
           context: arrai-global
       - flake8/flake8:
