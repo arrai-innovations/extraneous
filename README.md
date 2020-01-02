@@ -2,9 +2,21 @@
 
 Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.
 
-| Branch | Build Status | Coverage Status |
-| ------ | ------------ | --------------- |
-| master | [![Build Status](https://semaphoreci.com/api/v1/arrai-innovations/extraneous/branches/master/shields_badge.svg)](https://semaphoreci.com/arrai-innovations/extraneous) | [![Coverage Status](https://docs.arrai-dev.com/extraneous/htmlcov_master/coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_master/) |
-| develop | [![Build Status](https://semaphoreci.com/api/v1/arrai-innovations/extraneous/branches/develop/shields_badge.svg)](https://semaphoreci.com/arrai-innovations/extraneous) | [![Coverage Status](https://docs.arrai-dev.com/extraneous/htmlcov_develop/coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_develop/) |
-
 ![extraneous logo](extraneous.png)
+
+
+![Tests](https://docs.arrai-dev.com/extraneous/master.python36.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/master.python36.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_master_python36/)
+
+![Tests](https://docs.arrai-dev.com/extraneous/master.python37.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/master.python37.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_master_python37/)
+
+![Tests](https://docs.arrai-dev.com/extraneous/master.python38.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/master.python38.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_master_python38/)
+
+![Flake8](https://docs.arrai-dev.com/extraneous/master.flake8.svg)
+
+![Tests](https://docs.arrai-dev.com/extraneous/develop.python36.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/develop.python36.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_develop_python36/)
+
+![Tests](https://docs.arrai-dev.com/extraneous/develop.python37.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/develop.python37.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_develop_python37/)
+
+![Tests](https://docs.arrai-dev.com/extraneous/develop.python38.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/develop.python38.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_develop_python38/)
+
+![Flake8](https://docs.arrai-dev.com/extraneous/develop.flake8.svg)
