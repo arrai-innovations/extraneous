@@ -2,7 +2,7 @@
 
 Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.
 
-![extraneous logo](extraneous.png)
+![extraneous logo](https://docs.arrai-dev.com/extraneous/readme/extraneous.png)
 
 ###### master
 
