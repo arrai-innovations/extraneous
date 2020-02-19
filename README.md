@@ -4,6 +4,8 @@ Find extraneous pip packages not listed in your requirements.txt or as a sub-dep
 
 ![extraneous logo](https://docs.arrai-dev.com/extraneous/readme/extraneous.png)
 
+[![PYPI](https://img.shields.io/pypi/v/extraneous?style=for-the-badge)](https://pypi.org/project/extraneous/)
+
 ###### master
 
 ![Tests](https://docs.arrai-dev.com/extraneous/master.python38.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/master.python38.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_master_python38/)
