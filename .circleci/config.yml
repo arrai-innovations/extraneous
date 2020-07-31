@@ -102,29 +102,3 @@ workflows:
           name: flake8
           context: arrai-global
           wd: .
-  weekly:
-    jobs:
-      - pythontests:
-          name: python36
-          executor: python36
-          context: arrai-global
-      - pythontests:
-          name: python37
-          executor: python37
-          context: arrai-global
-      - pythontests:
-          name: python38
-          executor: python38
-          context: arrai-global
-      - flake8/flake8:
-          name: flake8
-          context: arrai-global
-          wd: .
-    triggers:
-      - schedule:
-          cron: "0 2 * * 1"
-          filters:
-            branches:
-              only:
-                - master
-                - develop
