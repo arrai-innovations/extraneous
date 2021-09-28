@@ -75,7 +75,6 @@ class ExtraneousTestCase(TestCase):
         return cls.subcmd(
             'python -m pip {install} {upgrade}{editable}{package}'.format(
                 install='uninstall -y' if uninstall else 'install',
-                env_path=cls.env_path,
                 upgrade='--upgrade ' if upgrade else '',
                 editable='-e ' if editable else '',
                 package=package
@@ -112,7 +111,7 @@ exclude_lines =
         pth_path = 'import sys; print(' \
                    '[x for x in sys.path if \'site-packages\' in x][0] + \'/coverage-all-the-things.pth\'' \
                    ')'
-        pth_wrap = 'python -c "{pth_path}"'.format(env_path=cls.env_path, pth_path=pth_path)
+        pth_wrap = 'python -c "{pth_path}"'.format(pth_path=pth_path)
         cls.subcmd('{echo} > `{pth_wrap}`'.format(echo=echo, pth_wrap=pth_wrap))
         cls.pip_install(' '.join('{}/test_packages/{}'.format(real_cwd, package) for package in cls.test_packages))
         with open('{cwd_path}/requirements.txt'.format(cwd_path=cls.cwd_path), mode='w') as w:
@@ -128,9 +127,7 @@ exclude_lines =
     def get_sitepackages_for_venv(cls, cwd_path=None):
         ran = cls.subcmd(
             'python -c "from site import getsitepackages; import os;'
-            'print(\'\\n\\t\'.join([os.path.relpath(x, os.getcwd()) for x in getsitepackages()]))"'.format(
-                env_path=cls.env_path
-            ),
+            'print(\'\\n\\t\'.join([os.path.relpath(x, os.getcwd()) for x in getsitepackages()]))"',
             cwd_path=cwd_path
         )
         return ran.stdout.decode('utf8').strip()
