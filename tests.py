@@ -98,7 +98,7 @@ exclude_lines =
     @classmethod
     def setup_venv(cls):
         real_cwd = os.getcwd()
-        # create(..., with_pip=True) does not seem to run ensurepip inside the new venv, but in our outside venv.
+        # create(..., with_pip=True) seems to ensurepip on the outside venv not on the new venv.
         venv.create(cls.env_path, with_pip=False)
         cls.env_vars = {
             'PATH': '{}/bin:'.format(cls.env_path) + os.environ.get('PATH'),
