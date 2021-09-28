@@ -18,7 +18,7 @@ Find extraneous pip packages not listed in your requirements.txt or as a sub-dep
 
 ![Flake8](https://docs.arrai-dev.com/extraneous/main.flake8.svg)
 
-## Usage
+## Install
 
 ```console
 $ pip install extraneous
