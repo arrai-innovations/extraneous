@@ -104,7 +104,7 @@ exclude_lines =
             'VIRTUAL_ENV': cls.env_path,
         }
         # install pip manually, with the correct env.
-        cls.subcmd('python -Im ensurepip --upgrade --default-pip'.format(cls.env_path))
+        cls.subcmd('python -Im ensurepip --upgrade --default-pip')
         cls.pip_install('-r {real_cwd}/test_requirements.txt'.format(real_cwd=real_cwd))
         cls.pip_install(real_cwd, editable=True)
         echo = 'echo "import coverage; coverage.process_startup()"'
