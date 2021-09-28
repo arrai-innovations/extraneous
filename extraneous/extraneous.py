@@ -6,12 +6,16 @@ import os
 import re
 from itertools import chain
 
+# noinspection PyUnresolvedReferences,PyPackageRequirements
 from colors import color
+from pipdeptree import PackageDAG
+
 try:
+    # noinspection PyPackageRequirements,PyCompatibility
     from pip._internal.utils.misc import get_installed_distributions, dist_is_editable
 except ImportError:
+    # noinspection PyPackageRequirements,PyCompatibility
     from pip import get_installed_distributions, dist_is_editable
-from pipdeptree import build_dist_index, construct_tree, reverse_tree
 
 flatten = chain.from_iterable
 re_operator = re.compile(r'[>=]')
@@ -75,8 +79,7 @@ def read_installed(verbose=True):
             '\n\t'.join([os.path.relpath(x, cwd) for x in site_package_dirs])
         ))
     pkgs = get_installed_distributions()
-    dist_index = build_dist_index(pkgs)
-    tree = construct_tree(dist_index)
+    tree = PackageDAG.from_pkgs(pkgs)
     branch_keys = set(r.key for r in flatten(tree.values()))
     nodes = [p for p in tree.keys() if p.key not in branch_keys]
     project_names = set(normalize_package_name(p.project_name) for p in nodes)
@@ -91,7 +94,7 @@ def package_tree_to_name_tree(tree):
 
 def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
     name_tree = package_tree_to_name_tree(tree)
-    name_rtree = package_tree_to_name_tree(reverse_tree(tree))
+    name_rtree = package_tree_to_name_tree(tree.reverse())
     packages_to_uninstall = set(name for name in root_package_names_to_uninstall)
 
     def add_to_uninstall(packages):
