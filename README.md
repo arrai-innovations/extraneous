@@ -17,3 +17,53 @@ Find extraneous pip packages not listed in your requirements.txt or as a sub-dep
 ![Tests](https://docs.arrai-dev.com/extraneous/main.python36.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/main.python36.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_main_python36/)
 
 ![Flake8](https://docs.arrai-dev.com/extraneous/main.flake8.svg)
+
+## Usage
+
+```console
+$ pip install extraneous
+```
+
+## Help
+
+```console
+$ extraneous.py -h
+usage: extraneous.py [-h] [--verbose] [--include paths] [--exclude names]
+[--full]
+
+Identifies packages that are installed but not defined in requirements files.
+Prints the 'pip uninstall' command that removes these extraneous packages and
+any non-common dependencies. Looks for packages matching '*requirements*.txt'
+in the current working directory.
+
+optional arguments:
+-h, --help
+    show this help message and exit
+--verbose, -v
+    Prints installed site-package folders and requirements files.
+--include paths, -i paths
+    Additional directories to look for '*requirements*.txt' files in.
+--exclude names, -e names
+    Package names to not consider extraneous. ['extraneous', 'pipdeptree',
+     'pip', 'setuptools'] are not considered extraneous packages.
+--full, -f
+    Allows ['extraneous', 'pipdeptree', 'pip', 'setuptools'] as extraneous
+     packages.
+```
+
+## Example output
+
+```console
+$ extraneous.py
+extraneous packages:
+        smbprotocol
+uninstall via:
+        pip uninstall -y smbprotocol cryptography dataclasses pyspnego
+```
+
+## Testing
+
+1. Clone the repo.
+2. Setup and activate a new venv.
+3. Install `requirements.txt` and `test_requirements.txt` into your venv.
+4. Run `$ python setup.py test`.
