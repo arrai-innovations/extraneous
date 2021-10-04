@@ -61,9 +61,19 @@ uninstall via:
         pip uninstall -y smbprotocol cryptography dataclasses pyspnego
 ```
 
-## Testing
+## Development
 
 1. Clone the repo.
 2. Setup and activate a new venv.
-3. Install `requirements.txt` and `test_requirements.txt` into your venv.
-4. Run `$ python setup.py test`.
+3. Install `requirements.txt` into your venv.
+
+## Testing
+
+1. Install `test_requirements.txt` into your venv.
+2. Run `$ python setup.py test`.
+
+## Build and Publish
+
+1. Install `build_requirements.txt` into your venv.
+2. Run `$ python setup.py bdist_wheel`.
+3. Run `$ twine upload dist/*t`.
