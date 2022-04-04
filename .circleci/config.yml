@@ -50,6 +50,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            pip install pip==20.3.4
             python setup.py test
             pip install pip==9.0.3
             python setup.py test
