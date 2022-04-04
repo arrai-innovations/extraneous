@@ -8,15 +8,15 @@ Find extraneous pip packages not listed in your requirements.txt or as a sub-dep
 
 ###### main
 
-![Tests](https://docs.arrai-dev.com/extraneous/main.python39.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/main.python39.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_main_python39/)
+![Tests](https://docs.arrai-dev.com/extraneous/artifacts/main/python39.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/artifacts/main/python39.coverage.svg)](https://docs.arrai-dev.com/extraneous/artifacts/main/htmlcov_python39/)
 
-![Tests](https://docs.arrai-dev.com/extraneous/main.python38.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/main.python38.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_main_python38/)
+![Tests](https://docs.arrai-dev.com/extraneous/artifacts/main/python38.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/artifacts/main/python38.coverage.svg)](https://docs.arrai-dev.com/extraneous/artifacts/main/htmlcov_python38/)
 
-![Tests](https://docs.arrai-dev.com/extraneous/main.python37.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/main.python37.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_main_python37/)
+![Tests](https://docs.arrai-dev.com/extraneous/artifacts/main/python37.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/artifacts/main/python37.coverage.svg)](https://docs.arrai-dev.com/extraneous/artifacts/main/htmlcov_python37/)
 
-![Tests](https://docs.arrai-dev.com/extraneous/main.python36.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/main.python36.coverage.svg)](https://docs.arrai-dev.com/extraneous/htmlcov_main_python36/)
+![Tests](https://docs.arrai-dev.com/extraneous/artifacts/main/python36.svg) [![Coverage](https://docs.arrai-dev.com/extraneous/artifacts/main/python36.coverage.svg)](https://docs.arrai-dev.com/extraneous/artifacts/main/htmlcov_python36/)
 
-![Flake8](https://docs.arrai-dev.com/extraneous/main.flake8.svg)
+![Flake8](https://docs.arrai-dev.com/extraneous/artifacts/main/flake8.svg)
 
 ## Install
 
