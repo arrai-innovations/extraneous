@@ -1,28 +1,28 @@
 version: 2.1
 orbs:
-  utils: arrai/utils@1.4.1
-  flake8: arrai/flake8@5.1.0
+  utils: arrai/utils@1.8.0
+  flake8: arrai/flake8@11.0.1
 executors:
   python36:
     environment:
       LANG: C.UTF-8
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
   python37:
     environment:
       LANG: C.UTF-8
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
   python38:
     environment:
       LANG: C.UTF-8
     docker:
-      - image: circleci/python:3.8
+      - image: cimg/python:3.8
   python39:
     environment:
       LANG: C.UTF-8
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.9
 jobs:
   pythontests:
     parameters:
@@ -33,7 +33,11 @@ jobs:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - run: sudo apt-get install rsync
+      - run:
+          name: Install additional packages
+          command: |
+            sudo apt-get update
+            sudo apt-get install rsync
       - utils/add_ssh_config:
           host: "docs"
           hostname: ${DOCS_HOST}
@@ -42,12 +46,13 @@ jobs:
       - utils/make_status_shield:
           status: running
           color: lightblue
-      - run: sudo pip install -r requirements.txt -r test_requirements.txt | cat; test ${PIPESTATUS[0]} -eq 0
+      - run: pip install -r requirements.txt -r test_requirements.txt | cat; test ${PIPESTATUS[0]} -eq 0
       - run:
           name: Run tests
           command: |
+            pip install pip==20.3.4
             python setup.py test
-            sudo pip install pip==9.0.3
+            pip install pip==9.0.3
             python setup.py test
       - run:
           when: always
@@ -57,15 +62,15 @@ jobs:
       - utils/rsync_folder:
           when: always
           folder: ./htmlcov/
-          remote_folder: htmlcov_${CIRCLE_BRANCH}_${CIRCLE_JOB}
+          remote_folder: ${CIRCLE_BRANCH}/htmlcov_${CIRCLE_JOB}
           host: docs
       - utils/make_coverage_shield:
           when: always
-          link: "https://${DOCS_HOST}/${CIRCLE_PROJECT_REPONAME}/htmlcov_${CIRCLE_BRANCH}_${CIRCLE_JOB}/"
+          link: "https://${DOCS_HOST}/${CIRCLE_PROJECT_REPONAME}/artifacts/${CIRCLE_BRANCH}/htmlcov_${CIRCLE_JOB}/"
       - utils/rsync_file:
           when: always
-          file: ~/coverage.svg
-          remote_file: ${CIRCLE_BRANCH}.${CIRCLE_JOB}.coverage.svg
+          file: /tmp/coverage.svg
+          remote_file: ${CIRCLE_BRANCH}/${CIRCLE_JOB}.coverage.svg
           host: docs
       - run:
           when: always
@@ -73,7 +78,7 @@ jobs:
       - utils/rsync_file:
           when: always
           file: ~/pip.freeze
-          remote_file: ${CIRCLE_BRANCH}.${CIRCLE_JOB}.freeze
+          remote_file: ${CIRCLE_BRANCH}/${CIRCLE_JOB}.freeze
           host: docs
       - utils/make_status_shield:
           when: on_success
@@ -86,7 +91,7 @@ jobs:
       - utils/rsync_file:
           when: always
           file: ~/status.svg
-          remote_file: ${CIRCLE_BRANCH}.${CIRCLE_JOB}.svg
+          remote_file: ${CIRCLE_BRANCH}/${CIRCLE_JOB}.svg
           host: docs
 workflows:
   test:
