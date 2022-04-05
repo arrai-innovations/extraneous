@@ -2,6 +2,8 @@
 
 Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.
 
+**NOTICE**: This software supports pip <= 20.3.4. At present Arrai Innovations does not intend to port this product to newer releases.
+
 ![extraneous logo](https://docs.arrai-dev.com/extraneous/readme/extraneous.png)
 
 [![PYPI](https://img.shields.io/pypi/v/extraneous?style=for-the-badge)](https://pypi.org/project/extraneous/)
