@@ -58,7 +58,7 @@ jobs:
           when: always
           command: |
             coverage html
-            coverage report | tail -1 | awk '{print substr($NF, 1, length($NF)-1)}' >> ~/.coveragep
+            coverage report | tail -1 | awk '{print substr($NF, 1, length($NF)-1)}' >> /tmp/.coveragep
       - utils/rsync_folder:
           when: always
           folder: ./htmlcov/
