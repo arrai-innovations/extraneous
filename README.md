@@ -2,7 +2,7 @@
 
 Find extraneous pip packages not listed in your requirements.txt or as a sub-dependency.
 
-**NOTICE**: This software supports pip <= 20.3.4. Arrai Innovations is no longer actively developing or maintaining this software. We recommend users look at [pipenv](https://github.com/pypa/pipenv), [poetry](https://github.com/python-poetry/poetry), or [PDM](https://github.com/pdm-project/pdm) for package management.
+**NOTICE**: This software supports pip <= 20.3.4. Arrai Innovations is no longer actively developing or maintaining this software. We recommend users look at [pipenv](https://github.com/pypa/pipenv), [poetry](https://github.com/python-poetry/poetry), or [PDM](https://github.com/pdm-project/pdm) for package management; extraneous has become extraneous.
 
 ![extraneous logo](https://docs.arrai-dev.com/extraneous/readme/extraneous.png)
 
