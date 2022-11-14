@@ -2,17 +2,17 @@
 from setuptools import setup
 
 setup(
-    name='extraneous_sub_sub_package_2',
-    url='https://github.com/arrai-innovations/extraneous/',
-    version='1.0.0',
-    description='Package used by extraneous tests.',
-    author='Arrai Innovations',
-    author_email='support@arrai.com',
+    name="extraneous_sub_sub_package_2",
+    url="https://github.com/arrai-innovations/extraneous/",
+    version="1.0.0",
+    description="Package used by extraneous tests.",
+    author="Arrai Innovations",
+    author_email="support@arrai.com",
     install_requires=[],
     classifiers=[
-        'Development Status :: 1 - Planning',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Intended Audience :: Developers',
-    ]
+        "Development Status :: 1 - Planning",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Intended Audience :: Developers",
+    ],
 )
