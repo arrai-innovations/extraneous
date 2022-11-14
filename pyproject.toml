@@ -1,0 +1,42 @@
+[tool.flake8]
+#enable-extensions = ['G'] # Enables flake8-logging-format
+exclude = '.git,*/migrations/*,*/static/CACHE/*,docs,node_modules,*venv*'
+extend-ignore = [
+    # (flake8-builtins) builtin names used as class attributes (e.g. `id`, `type`, `help`)
+    'A003',
+    # (flake8) Black incompatibility - see https://github.com/PyCQA/pycodestyle/issues/373
+    'E203',
+    # (flake8-logging-format) false-positives for anything calling `.warn()`
+    'G010',
+    # (flake8-fixme) "hack" comments
+    'T103',
+    # we are already covered by F401, thanks.
+    'F811',
+]
+per-file-ignores = [
+    './tests.py:T201',
+    './extraneous/extraneous.py:T201',
+]
+max-complexity = 20
+max-line-length = 120
+# flake8-import-order
+application-import-names = [
+    'extraneous',
+]
+import-order-style = 'pycharm'
+# pep8-naming
+ignore-names = [
+    # defaults
+    'setUp',
+    'tearDown',
+    'setUpClass',
+    'tearDownClass',
+    'setUpTestData',
+    'failureException',
+    'longMessage',
+    'maxDiff',
+    # custom (ideally, we'd want "assert*")
+]
+
+[tool.black]
+line-length = 120
