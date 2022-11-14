@@ -1,5 +1,5 @@
 [tool.flake8]
-#enable-extensions = ['G'] # Enables flake8-logging-format
+enable-extensions = ['G'] # Enables flake8-logging-format
 exclude = '.git,*/migrations/*,*/static/CACHE/*,docs,node_modules,*venv*'
 extend-ignore = [
     # (flake8-builtins) builtin names used as class attributes (e.g. `id`, `type`, `help`)
