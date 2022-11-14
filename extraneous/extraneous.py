@@ -12,10 +12,12 @@ from pipdeptree import PackageDAG
 
 try:
     # noinspection PyPackageRequirements,PyCompatibility
-    from pip._internal.utils.misc import get_installed_distributions, dist_is_editable
+    from pip._internal.utils.misc import get_installed_distributions
+    from pip._internal.utils.misc import dist_is_editable
 except ImportError:
     # noinspection PyPackageRequirements,PyCompatibility
-    from pip import get_installed_distributions, dist_is_editable
+    from pip import get_installed_distributions
+    from pip import dist_is_editable
 
 flatten = chain.from_iterable
 re_operator = re.compile(r"[>=]")
@@ -52,7 +54,7 @@ def read_requirements(verbose=True, include=None):
             with open(path) as rfile:
                 if verbose:
                     print("\t{}".format(path))
-                reqs |= set(parse_requirement(line) for line in rfile.read().split("\n") if line)
+                reqs |= {parse_requirement(line) for line in rfile.read().split("\n") if line}
         except FileNotFoundError:
             if verbose:
                 print("\t{} (Not Found)".format(path))
@@ -78,16 +80,16 @@ def read_installed(verbose=True):
         print("reading installed from:\n\t{}".format("\n\t".join([os.path.relpath(x, cwd) for x in site_package_dirs])))
     pkgs = get_installed_distributions()
     tree = PackageDAG.from_pkgs(pkgs)
-    branch_keys = set(r.key for r in flatten(tree.values()))
+    branch_keys = {r.key for r in flatten(tree.values())}
     nodes = [p for p in tree.keys() if p.key not in branch_keys]
-    project_names = set(normalize_package_name(p.project_name) for p in nodes)
-    editable_packages = set(normalize_package_name(p.project_name) for p in nodes if dist_is_editable(p._obj))
+    project_names = {normalize_package_name(p.project_name) for p in nodes}
+    editable_packages = {normalize_package_name(p.project_name) for p in nodes if dist_is_editable(p._obj)}
     return set(project_names), editable_packages, tree
 
 
 def package_tree_to_name_tree(tree):
     return {
-        normalize_package_name(k.project_name): set(normalize_package_name(i.project_name) for i in v)
+        normalize_package_name(k.project_name): {normalize_package_name(i.project_name) for i in v}
         for k, v in tree.items()
     }
 
@@ -95,7 +97,7 @@ def package_tree_to_name_tree(tree):
 def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
     name_tree = package_tree_to_name_tree(tree)
     name_rtree = package_tree_to_name_tree(tree.reverse())
-    packages_to_uninstall = set(name for name in root_package_names_to_uninstall)
+    packages_to_uninstall = set(root_package_names_to_uninstall)
 
     def add_to_uninstall(packages):
         for package in packages:

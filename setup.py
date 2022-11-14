@@ -1,5 +1,6 @@
 # Copyright (C) 2018 Arrai Innovations Inc. - All Rights Reserved
 from setuptools import setup
+
 from extraneous import __version__
 
 with open("README.md", "r") as fh:
