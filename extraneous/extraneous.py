@@ -18,7 +18,7 @@ except ImportError:
     from pip import get_installed_distributions, dist_is_editable
 
 flatten = chain.from_iterable
-re_operator = re.compile(r'[>=]')
+re_operator = re.compile(r"[>=]")
 
 
 def normalize_package_name(name):
@@ -29,7 +29,7 @@ def normalize_package_name(name):
 
 
 def parse_requirement(line):
-    if line.startswith('-e'):
+    if line.startswith("-e"):
         return line
     return re_operator.split(line)[0]
 
@@ -37,11 +37,11 @@ def parse_requirement(line):
 def read_requirements(verbose=True, include=None):
     cwd = os.getcwd()
     if verbose:
-        print('reading requirements from:')
-    include_files = sorted(glob.glob('*requirements*.txt'))
+        print("reading requirements from:")
+    include_files = sorted(glob.glob("*requirements*.txt"))
     if include:
         for include_dir in include:
-            include_files += sorted(glob.glob(os.path.join(include_dir, '*requirements*.txt')))
+            include_files += sorted(glob.glob(os.path.join(include_dir, "*requirements*.txt")))
     reqs = set()
     for rname in include_files:
         if os.path.isabs(rname):
@@ -51,15 +51,13 @@ def read_requirements(verbose=True, include=None):
         try:
             with open(path) as rfile:
                 if verbose:
-                    print('\t{}'.format(path))
-                reqs |= set(parse_requirement(line) for line in rfile.read().split('\n') if line)
+                    print("\t{}".format(path))
+                reqs |= set(parse_requirement(line) for line in rfile.read().split("\n") if line)
         except FileNotFoundError:
             if verbose:
-                print('\t{} (Not Found)'.format(path))
+                print("\t{} (Not Found)".format(path))
     if not reqs:
-        raise ValueError('No requirements found.{}'.format(
-            '' if verbose else ' Use -v for more information.'
-        ))
+        raise ValueError("No requirements found.{}".format("" if verbose else " Use -v for more information."))
     return {normalize_package_name(x) for x in reqs}
 
 
@@ -69,15 +67,15 @@ def read_installed(verbose=True):
         try:
             # virtual environment with venv in python 3.3+
             from site import getsitepackages
+
             site_package_dirs = getsitepackages()
         except ImportError:
             # virtual environment with virtualenv
             # https://github.com/pypa/virtualenv/issues/228
             from distutils.sysconfig import get_python_lib
+
             site_package_dirs = [get_python_lib()]
-        print('reading installed from:\n\t{}'.format(
-            '\n\t'.join([os.path.relpath(x, cwd) for x in site_package_dirs])
-        ))
+        print("reading installed from:\n\t{}".format("\n\t".join([os.path.relpath(x, cwd) for x in site_package_dirs])))
     pkgs = get_installed_distributions()
     tree = PackageDAG.from_pkgs(pkgs)
     branch_keys = set(r.key for r in flatten(tree.values()))
@@ -88,8 +86,10 @@ def read_installed(verbose=True):
 
 
 def package_tree_to_name_tree(tree):
-    return {normalize_package_name(k.project_name): set(normalize_package_name(i.project_name) for i in v) for k, v in
-            tree.items()}
+    return {
+        normalize_package_name(k.project_name): set(normalize_package_name(i.project_name) for i in v)
+        for k, v in tree.items()
+    }
 
 
 def find_requirements_unique_to_projects(tree, requirements, root_package_names_to_uninstall, exclude_packages):
@@ -114,50 +114,45 @@ def find_requirements_unique_to_projects(tree, requirements, root_package_names_
 
 
 def main(*args):
-    default_not_extraneous = ['extraneous', 'pipdeptree', 'pip', 'setuptools']
+    default_not_extraneous = ["extraneous", "pipdeptree", "pip", "setuptools"]
     parser = argparse_class(
-        prog='extraneous.py',
-        description='Identifies packages that are installed but not defined in requirements files. Prints the'
-                    " 'pip uninstall' command that removes these extraneous packages and any non-common"
-                    " dependencies. Looks for packages matching '*requirements*.txt' in the current working"
-                    ' directory.'
+        prog="extraneous.py",
+        description="Identifies packages that are installed but not defined in requirements files. Prints the"
+        " 'pip uninstall' command that removes these extraneous packages and any non-common"
+        " dependencies. Looks for packages matching '*requirements*.txt' in the current working"
+        " directory.",
     )
     parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Prints installed site-package folders and requirements files.'
+        "--verbose", "-v", action="store_true", help="Prints installed site-package folders and requirements files."
     )
     parser.add_argument(
-        '--include', '-i',
-        metavar='paths',
-        action='append',
-        help="Additional directories to look for '*requirements*.txt' files in."
+        "--include",
+        "-i",
+        metavar="paths",
+        action="append",
+        help="Additional directories to look for '*requirements*.txt' files in.",
     )
     parser.add_argument(
-        '--exclude', '-e',
-        metavar='names',
-        action='append',
+        "--exclude",
+        "-e",
+        metavar="names",
+        action="append",
         default=[],
-        help='Package names to not consider extraneous.'
-             ' {} are not considered extraneous packages.'.format(default_not_extraneous)
+        help="Package names to not consider extraneous."
+        " {} are not considered extraneous packages.".format(default_not_extraneous),
     )
     parser.add_argument(
-        '--full', '-f',
-        action='store_true',
-        help='Allows {} as extraneous packages.'.format(default_not_extraneous)
+        "--full", "-f", action="store_true", help="Allows {} as extraneous packages.".format(default_not_extraneous)
     )
     if args:
         parsed_args = parser.parse_args(args)
     else:
         parsed_args = parser.parse_args()
     installed, editable, tree = read_installed(parsed_args.verbose)
-    requirements = read_requirements(
-        parsed_args.verbose,
-        include=parsed_args.include
-    )
+    requirements = read_requirements(parsed_args.verbose, include=parsed_args.include)
     for name in editable:
         for requirement in list(requirements):
-            if requirement.endswith('#egg={}'.format(name)):
+            if requirement.endswith("#egg={}".format(name)):
                 requirements.remove(requirement)
                 requirements.add(name)
     not_extraneous = set(parsed_args.exclude)
@@ -166,14 +161,9 @@ def main(*args):
     extraneous = installed - requirements - not_extraneous
     uninstall = set()
     if extraneous:
-        print(color(
-            'extraneous packages:\n\t{}'.format(' '.join(sorted(extraneous))),
-            fg='yellow'
-        ))
+        print(color("extraneous packages:\n\t{}".format(" ".join(sorted(extraneous))), fg="yellow"))
         uninstall = find_requirements_unique_to_projects(tree, requirements, extraneous, not_extraneous) - extraneous
-        print('uninstall via:\n\tpip uninstall -y {}'.format(
-            ' '.join(sorted(extraneous) + sorted(uninstall))
-        ))
+        print("uninstall via:\n\tpip uninstall -y {}".format(" ".join(sorted(extraneous) + sorted(uninstall))))
     return extraneous, uninstall
 
 
@@ -187,6 +177,6 @@ class NoExitArgumentParser(argparse.ArgumentParser):
 
 
 argparse_class = NoExitArgumentParser
-if __name__ == '__main__':
+if __name__ == "__main__":
     argparse_class = argparse.ArgumentParser
     main()
