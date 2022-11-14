@@ -1,0 +1,14 @@
+flake8==4.0.1
+flake8-assertive==2.1.0
+flake8-black==0.3.3
+flake8-bugbear==22.10.27
+flake8-builtins==2.0.1
+flake8-broken-line==0.6.0
+flake8-comprehensions==3.10.1
+flake8-debugger==4.1.2
+flake8-fixme==1.1.1
+flake8-import-order==0.18.1
+flake8-logging-format==0.8.1
+flake8-pep3101==2.0.0
+pep8-naming==0.13.2
+pyproject-flake8==4.0.1
